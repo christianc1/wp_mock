@@ -2,10 +2,10 @@
 
 namespace WP_Mock\Tools;
 
-use WP_Mock;
-use Mockery;
 use Exception;
+use Mockery;
 use ReflectionMethod;
+use WP_Mock;
 use WP_Mock\Tools\Constraints\ExpectationsMet;
 use WP_Mock\Tools\Constraints\IsEqualHtml;
 
@@ -82,14 +82,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase {
 	}
 
 	public function assertHooksAdded() {
-		$hooks_not_added = $expected_hooks = 0;
 		try {
 			WP_Mock::assertHooksAdded();
+			$this->assertTrue( true ); // This had better not ever fail...
 		} catch ( Exception $e ) {
-			$hooks_not_added = 1;
-			$expected_hooks  = $e->getMessage();
+			$this->fail( $e->getMessage() );
 		}
-		$this->assertEmpty( $hooks_not_added, $expected_hooks );
 	}
 
 	public function stripTabsAndNewlines( $content ) {

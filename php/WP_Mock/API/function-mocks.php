@@ -14,7 +14,7 @@ if ( ! function_exists( 'add_action' ) ) {
 	 * @param int      $priority        optional. Used to specify the order in which the functions associated with a particular action are executed (default: 10). Lower numbers correspond with earlier execution, and functions with the same priority are executed in the order in which they were added to the action.
 	 * @param int      $accepted_args   optional. The number of arguments the function accept (default 1).
 	 */
-	function add_action( $tag, $function_to_add ) {
+	function add_action( $tag, $function_to_add, $priority = 10, $accepted_args = 1 ) {
 		\WP_Mock\Handler::handle_function( __FUNCTION__, func_get_args() );
 	}
 }
@@ -37,7 +37,7 @@ if ( ! function_exists( 'add_filter' ) ) {
 	/**
 	 * Dummy method to prevent filter hooks in constructor from failing.
 	 */
-	function add_filter( $tag, $callback ) {
+	function add_filter( $tag, $callback, $priority = 10, $accepted_args = 1 ) {
 		\WP_Mock\Handler::handle_function( __FUNCTION__, func_get_args() );
 	}
 }

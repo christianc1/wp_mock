@@ -39,6 +39,8 @@ class WP_Mock {
 	 */
 	protected static $event_manager;
 
+	protected static $hookHandlers = array();
+
 	/**
 	 * @var \WP_Mock\Functions
 	 */
@@ -96,6 +98,7 @@ class WP_Mock {
 			\Mockery::close();
 
 			self::$event_manager    = new \WP_Mock\EventManager();
+			self::$hookHandlers     = array();
 			self::$function_manager = new \WP_Mock\Functions();
 		} else {
 			self::bootstrap();
@@ -107,6 +110,7 @@ class WP_Mock {
 	 */
 	public static function tearDown() {
 		self::$event_manager->flush();
+		self::$hookHandlers = array();
 		self::$function_manager->flush();
 
 		\Mockery::close();
@@ -226,9 +230,11 @@ class WP_Mock {
 	 * @param string $callback The callback that should be registered
 	 * @param int    $priority The priority it should be registered at
 	 * @param int    $args     The number of arguments that should be allowed
+	 *
+	 * @return \Mockery\Expectation
 	 */
 	public static function expectActionAdded( $action, $callback, $priority = 10, $args = 1 ) {
-		self::expectHookAdded( 'action', $action, $callback, $priority, $args );
+		return self::expectHookAdded( 'action', $action, $callback, $priority, $args );
 	}
 
 	/**
@@ -240,9 +246,11 @@ class WP_Mock {
 	 * @param string $callback The callback that should be registered
 	 * @param int    $priority The priority it should be registered at
 	 * @param int    $args     The number of arguments that should be allowed
+	 *
+	 * @return \Mockery\Expectation
 	 */
 	public static function expectFilterAdded( $filter, $callback, $priority = 10, $args = 1 ) {
-		self::expectHookAdded( 'filter', $filter, $callback, $priority, $args );
+		return self::expectHookAdded( 'filter', $filter, $callback, $priority, $args );
 	}
 
 	/**
@@ -254,20 +262,29 @@ class WP_Mock {
 	 * @param int    $priority The priority it should be registered at
 	 * @param int    $args     The number of arguments that should be allowed
 	 */
-	public static function expectHookAdded( $type, $action, $callback, $priority = 10, $args = 1 ) {
-		$intercept = \Mockery::mock( 'intercept' );
-		$intercept->shouldReceive( 'intercepted' )->atLeast()->once();
+	protected static function expectHookAdded( $type, $action, $callback, $priority = 10, $args = 1 ) {
+		if ( empty( self::$hookHandlers["add_$type"] ) ) {
+			self::$hookHandlers["add_$type"] = Mockery::mock( 'wp_api' );
+		}
+		$mock        = self::$hookHandlers["add_$type"];
+		$expectation = $mock->shouldReceive( "add_$type" );
+		if ( $callback instanceof Closure ) {
+			$callback = Mockery::type( 'Closure' );
+		}
+		$expectation->with( $action, $callback, $priority, $args );
+		\WP_Mock\Handler::register_handler( "add_$type", array( $mock, "add_$type" ) );
 
-		/** @var WP_Mock\HookedCallbackResponder $responder */
-		$responder = self::onHookAdded( $action, $type )
-			->with( $callback, $priority, $args );
-		$responder->perform( array( $intercept, 'intercepted' ) );
+		return $expectation;
 	}
 
 	public static function assertHooksAdded() {
-		if ( ! self:: $event_manager->allHooksAdded() ) {
-			$failed = implode( ', ', self::$event_manager->expectedHooks() );
-			throw new PHPUnit_Framework_ExpectationFailedException( 'Method failed to add hooks: ' . $failed, null );
+		try {
+			/** @var \Mockery\Mock $mock */
+			foreach ( self::$hookHandlers as $mock ) {
+				$mock->mockery_verify();
+			}
+		} catch ( \Exception $e ) {
+			throw new PHPUnit_Framework_ExpectationFailedException( 'Method failed to add hooks: ' . $e->getMessage(), null );
 		}
 	}
 
