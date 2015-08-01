@@ -22,11 +22,8 @@ class HookRunner {
 		}
 	}
 
-	public static function apply_filters( $value = null ) {
-		if ( function_exists( 'WP_Mock\_hooks\apply_filters' ) ) {
-			$value = call_user_func_array( 'WP_Mock\_hooks\apply_filters', func_get_args() );
-		}
-		return $value;
+	public static function apply_filters() {
+		return Handler::handle_apply_filters( func_get_args() );
 	}
 
 }

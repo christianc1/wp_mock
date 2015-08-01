@@ -45,6 +45,23 @@ class Handler {
 	}
 
 	/**
+	 * Handle apply filters
+	 *
+	 * @param array $args
+	 *
+	 * @return mixed
+	 */
+	public static function handle_apply_filters( $args ) {
+		if ( isset( self::$handlers['WP_Mock\_hooks\apply_filters'] ) ) {
+			$callback = self::$handlers['WP_Mock\_hooks\apply_filters'];
+
+			return call_user_func_array( $callback, $args );
+		}
+
+		return isset( $args[1] ) ? $args[1] : null;
+	}
+
+	/**
 	 * Clear all registered handlers.
 	 */
 	public static function cleanup() {
