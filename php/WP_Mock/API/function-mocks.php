@@ -14,8 +14,8 @@ if ( ! function_exists( 'add_action' ) ) {
 	 * @param int      $priority        optional. Used to specify the order in which the functions associated with a particular action are executed (default: 10). Lower numbers correspond with earlier execution, and functions with the same priority are executed in the order in which they were added to the action.
 	 * @param int      $accepted_args   optional. The number of arguments the function accept (default 1).
 	 */
-	function add_action() {
-		call_user_func_array( array( 'WP_Mock\HookRunner', 'add_action' ), func_get_args() );
+	function add_action( $tag, $function_to_add ) {
+		\WP_Mock\Handler::handle_function( __FUNCTION__, func_get_args() );
 	}
 }
 
@@ -28,8 +28,8 @@ if ( ! function_exists( 'do_action' ) ) {
 	 *
 	 * @return null Will return null if $tag does not exist in $wp_filter array
 	 */
-	function do_action() {
-		call_user_func_array( array( 'WP_Mock\HookRunner', 'do_action' ), func_get_args() );
+	function do_action( $tag ) {
+		\WP_Mock\Handler::handle_function( __FUNCTION__, func_get_args() );
 	}
 }
 
@@ -37,8 +37,8 @@ if ( ! function_exists( 'add_filter' ) ) {
 	/**
 	 * Dummy method to prevent filter hooks in constructor from failing.
 	 */
-	function add_filter( $tag, $function_to_add, $priority = 10, $accepted_args = 1 ) {
-		call_user_func_array( array( 'WP_Mock\HookRunner', 'add_filter' ), func_get_args() );
+	function add_filter( $tag, $callback ) {
+		\WP_Mock\Handler::handle_function( __FUNCTION__, func_get_args() );
 	}
 }
 
@@ -53,6 +53,6 @@ if ( ! function_exists( 'apply_filters' ) ) {
 	 * @return mixed The filtered value after all hooked functions are applied to it.
 	 */
 	function apply_filters( $tag, $value ) {
-		return call_user_func_array( array( 'WP_Mock\HookRunner', 'apply_filters' ), func_get_args() );
+		return \WP_Mock\Handler::handle_apply_filters( func_get_args() );
 	}
 }
