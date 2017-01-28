@@ -39,6 +39,7 @@ class Filter extends Hook {
 			}
 
 			$processors = $processors[ $key ];
+			break;
 		}
 
 		return $processors->send();
